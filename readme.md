@@ -1,7 +1,7 @@
 
 # Prestamos BanCAi
 
-[![App Platorm](logo/Logo.png)](https://www.digitalocean.com/products/app-platform)
+[![App logo](logo/logo.png)](https://github.com/rir001/CAI_prestamos)
 
 ## Exportar
 
