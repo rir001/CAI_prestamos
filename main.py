@@ -19,7 +19,7 @@ class Ventana(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon('logo/Logo_CAi.png'))
-        self.setWindowTitle('Prestamos - BanCAi')
+        self.setWindowTitle(f'Prestamos - BanCAi - V{VESION}')
         self.setGeometry(*WINDOW_POSITION, *WINDOW_SIZE)
         self.load_gui()
         self.show()
