@@ -4,7 +4,7 @@
 [![App logo](logo/logo.png)](https://github.com/rir001/CAI_prestamos)
 
 ## Descargas
-- [Windows]("https://github.com/rir001/CAI_prestamos/raw/refs/heads/main/dist/Prestamos CAi.exe")
+- [Windows](https://github.com/rir001/CAI_prestamos/raw/refs/heads/main/dist/Prestamos CAi.exe)
 - [Mac OS]() (no implementado)
 
 ## Exportar
