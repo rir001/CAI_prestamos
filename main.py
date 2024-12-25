@@ -12,6 +12,7 @@ fromisoformat = datetime.fromisoformat
 now_time = lambda : datetime.now(timezone.utc)
 from src.input import CodeInput, NaInput
 
+VESION = "0.0.1"
 
 class Ventana(QMainWindow):
 
