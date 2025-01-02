@@ -1,18 +1,18 @@
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QLineEdit, QPushButton
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QPushButton, QLineEdit
 from PyQt6.QtGui import QFont, QIcon
 from PyQt6.QtCore import Qt
 import requests
 import datetime
 import sys
-from env import DATABASE_ID, HEADERS
-from utils import get_debt, calculate_fee, debt_format, pay_format
+from env import DATABASE_ID, HEADERS, USERNAME
+from utils import get_debt, debt_format, get_pendient, pay_format
 from params import WINDOW_POSITION, WINDOW_SIZE, BUTTON_POSITION, BUTTON_SIZE
-from datetime import datetime, timedelta, datetime, timezone
+from datetime import datetime, datetime, timezone
 fromisoformat = datetime.fromisoformat
 now_time = lambda : datetime.now(timezone.utc)
 from src.input import CodeInput, NaInput
 
-VESION = "0.0.1"
+VESION = "0.1.0"
 
 class Ventana(QMainWindow):
 
@@ -28,21 +28,58 @@ class Ventana(QMainWindow):
         self.load_main_view()
         self.load_info_view()
         self.load_payment_view()
+        self.load_headder()
 
         self.main_view.show()
         # self.payment_view.show()
+        # self.info_view.show()
+
+    def load_headder(self):
+        self.headder = QWidget(self)
+        self.headder.setGeometry(0, 0, WINDOW_SIZE[0], 40)
+        self.label_headder = QLabel("", self.headder)
+        # self.label_headder.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        self.label_headder.move(0, 0)
+        self.label_headder.setFont(QFont('Arial', 18))
+        self.label_headder.resize(WINDOW_SIZE[0], 40)
+        self.label_headder.setText(f"   Hola {USERNAME()}")
+
+        self.button_change_name_headder = QPushButton('change', self.headder)
+        self.button_change_name_headder.move(280, 0)
+        self.button_change_name_headder.resize(80, 40)
+        self.button_change_name_headder.setFont(QFont('Arial', 16))
+        self.button_change_name_headder.clicked.connect(self.load_name_view)
+
+        self.name_input = QLineEdit(self.headder)
+        self.name_input.move(20, 0)
+        self.name_input.resize(WINDOW_SIZE[0]-40, 40)
+        self.name_input.setFont(QFont('Arial', 16))
+        self.name_input.hide()
+        self.name_input.returnPressed.connect(self.show_name)
+
+    def load_name_view(self):
+        self.label_headder.hide()
+        self.button_change_name_headder.hide()
+        self.name_input.show()
+
+    def show_name(self):
+        USERNAME(self.name_input.text())
+        self.label_headder.show()
+        self.button_change_name_headder.show()
+        self.name_input.hide()
+        self.label_headder.setText(f"   Hola {USERNAME()}")
 
     def load_main_view(self):
 
         self.main_view = QWidget(self)
         self.main_view.setGeometry(0, 0, *WINDOW_SIZE)
 
-        self.code = CodeInput(self.main_view, 20, 25)
-        self.na   = NaInput(self.main_view, 20, 100)
+        self.code = CodeInput(self.main_view, 20, 60)
+        self.na   = NaInput(self.main_view, 20, 120)
 
         self.label_main = QLabel("", self.main_view)
         self.label_main.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-        self.label_main.move(20, 150)
+        self.label_main.move(20, 155)
         self.label_main.resize(360, 200)
         self.label_main.setFont(QFont('Arial', 12))
 
@@ -111,6 +148,7 @@ class Ventana(QMainWindow):
 
 
     def show_payment_view(self, data):
+        self.headder.hide()
         self.main_view.hide()
         self.info_view.hide()
 
@@ -118,6 +156,7 @@ class Ventana(QMainWindow):
         self.payment_view.show()
 
     def show_info_view(self, data):
+        self.headder.hide()
         self.main_view.hide()
         self.payment_view.hide()
 
@@ -135,6 +174,7 @@ class Ventana(QMainWindow):
         self.label_main.setText(str(data))
 
         self.main_view.show()
+        self.headder.show()
 
 
     def able_send_button(self):
@@ -146,7 +186,7 @@ class Ventana(QMainWindow):
         self.button_send.setText("SEND")
 
 
-    def publish_new_debt(self, ID, PERSON, NOW):
+    def publish_new_debt(self, ID, PERSON, NOW, COMMENT=""):
         url = "https://api.notion.com/v1/pages"
 
         data_ = {
@@ -162,6 +202,7 @@ class Ventana(QMainWindow):
                     'time_zone': None
                     }
                 },
+                "Comentarios": {"rich_text": [{"text": {"content": f"Prestado por {USERNAME()} - {COMMENT}"}}]},
             }
         }
 
@@ -181,7 +222,7 @@ class Ventana(QMainWindow):
         url = f"https://api.notion.com/v1/pages/{ID}"
         data_ = {"properties": {
             "Devolucion": {"date": {"start": NOW.isoformat()}},
-            "Comentarios": {"rich_text": [{"text": {"content": COMMENT}}]},
+            "Comentarios": {"rich_text": [{"text": {"content": f"Prestado por {USERNAME()} - {COMMENT}"}}]},
 
         }}
         response = requests.patch(url, headers=HEADERS, json=data_)
@@ -189,12 +230,14 @@ class Ventana(QMainWindow):
         if response.status_code != 200:
             self.button_send.setEnabled(False)
             self.button_send.setText("ERROR PUBLICANDO " + str(response.status_code))
+            return False
         else:
             self.button_send.setEnabled(False)
             self.na.box.clear()
             self.code.box.clear()
             self.code.box.setFocus()
             self.button_send.setText("SUCCESS")
+            return True
 
     def analize(self):
 
@@ -217,7 +260,11 @@ class Ventana(QMainWindow):
                 if len(data_with_fee) >= 1:
                     self.show_info_view(debt_format(data))
                 else:
-                    self.publish_new_debt(ID, PERSON, NOW)
+                    if len(get_pendient(ID)) == 0:
+                        self.publish_new_debt(ID, PERSON, NOW)
+                    else:
+                        self.button_send.setEnabled(False)
+                        self.button_send.setText("Ya fue prestado")
 
             else:
                 if ID in [d["code"] for d in data_with_fee]:

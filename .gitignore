@@ -2,6 +2,8 @@
 */__pycache__
 /build
 /codes
-test.ipynb
 Prestamos Cai.spec
+test.ipynb
+test.py
 env.py
+data.*
