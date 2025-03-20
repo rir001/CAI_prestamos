@@ -12,7 +12,7 @@ fromisoformat = datetime.fromisoformat
 now_time = lambda : datetime.now(timezone.utc)
 from src.input import CodeInput, NaInput
 
-VESION = "0.1.0"
+VESION = "0.1.1"
 
 class Ventana(QMainWindow):
 
@@ -241,40 +241,42 @@ class Ventana(QMainWindow):
 
     def analize(self):
 
-        NOW = now_time()
-        ID = self.code.box.text().strip()
-        PERSON = self.na.box.text().strip()
+        if self.button_send.isEnabled():
 
-        data = get_debt(PERSON)
+            NOW = now_time()
+            ID = self.code.box.text().strip()
+            PERSON = self.na.box.text().strip()
 
-        if type(data) == int:
-            self.button_send.setEnabled(False)
-            self.button_send.setText("ERROR RECIBIENDO " + str(data))
-            return None
+            data = get_debt(PERSON)
 
-        elif type(data) == list:
-            data_no_fee = [n for n in data if n["fee"] == 0]
-            data_with_fee = [n for n in data if n["fee"] > 0]
+            if type(data) == int:
+                self.button_send.setEnabled(False)
+                self.button_send.setText("ERROR RECIBIENDO " + str(data))
+                return None
 
-            if ID not in [d["code"] for d in data]:
-                if len(data_with_fee) >= 1:
-                    self.show_info_view(debt_format(data))
-                else:
-                    if len(get_pendient(ID)) == 0:
-                        self.publish_new_debt(ID, PERSON, NOW)
+            elif type(data) == list:
+                data_no_fee = [n for n in data if n["fee"] == 0]
+                data_with_fee = [n for n in data if n["fee"] > 0]
+
+                if ID not in [d["code"] for d in data]:
+                    if len(data_with_fee) >= 1:
+                        self.show_info_view(debt_format(data))
                     else:
-                        self.button_send.setEnabled(False)
-                        self.button_send.setText("Ya fue prestado")
+                        if len(get_pendient(ID)) == 0:
+                            self.publish_new_debt(ID, PERSON, NOW)
+                        else:
+                            self.button_send.setEnabled(False)
+                            self.button_send.setText("Ya fue prestado")
 
-            else:
-                if ID in [d["code"] for d in data_with_fee]:
-                    CARD = data_with_fee.pop([d["code"] for d in data_with_fee].index(ID))
-                    self.debt_info = CARD
-                    self.show_payment_view(pay_format(CARD))
+                else:
+                    if ID in [d["code"] for d in data_with_fee]:
+                        CARD = data_with_fee.pop([d["code"] for d in data_with_fee].index(ID))
+                        self.debt_info = CARD
+                        self.show_payment_view(pay_format(CARD))
 
-                elif ID in [d["code"] for d in data_no_fee]:
-                    CARD_ID = data_no_fee.pop([d["code"] for d in data_no_fee].index(ID))["id"]
-                    self.update_date(CARD_ID, NOW)
+                    elif ID in [d["code"] for d in data_no_fee]:
+                        CARD_ID = data_no_fee.pop([d["code"] for d in data_no_fee].index(ID))["id"]
+                        self.update_date(CARD_ID, NOW)
 
 
 

@@ -11,6 +11,8 @@
 `pip install pyinstaller`
 ### Windows
 `pyinstaller --onefile -i logo/logo.ico -n "Prestamos CAi" --noconsole main.py`
+### Linux
+`pyinstaller --onefile -i logo/logo.ico -n "Prestamos CAi" --noconsole main.py`
 ### Mac OS
 `pyinstaller --onefile -i logo/logo.ico -n "Prestamos CAi" --windowed  main.py`
 

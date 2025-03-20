@@ -90,7 +90,8 @@ def get_pendient(object, now=now_time()):
             n_data = {}
 
             n_data["id"] = n["id"]
-            n_data["tipo"] = n["properties"]["Tipo"]["formula"]["string"]
+            # n_data["tipo"] = n["properties"]["Tipo"]["formula"]["string"]
+            n_data["tipo"] = "nn"
             n_data["persona"] = n["properties"]["Persona"]["rich_text"][0]["plain_text"].strip()
             n_data["code"] = n["properties"]["Codigo"]["title"][0]["text"]["content"].strip()
 

@@ -62,6 +62,14 @@ class NaInput(InputText):
     def __init__(self, window, x, y):
         super().__init__(window, 'NA:', x, y)
 
+        self.box.returnPressed.connect(self.parse_na)
+
+    def parse_na(self):
+        na = self.box.text()
+        if len(na) == 120:
+            self.box.setText(na.split("¿")[1].split("/")[0].replace("'", ""))
+        print(self.box.text())
+
     def verify(self, na):
         if len(na) == 0:
             self.info.clear()
@@ -72,3 +80,4 @@ class NaInput(InputText):
         else:
             self.info.setText("NA must have least 8 characters")
             self.able = False
+
