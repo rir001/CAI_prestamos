@@ -7,6 +7,7 @@
 - [Windows](https://github.com/rir001/CAI_prestamos/raw/refs/heads/main/dist/Prestamos%20CAi.exe)
 - [Mac OS]() (no implementado)
 
+
 ## Exportar
 `pip install pyinstaller`
 ### Windows
