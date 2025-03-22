@@ -8,3 +8,5 @@ test.py
 env.py
 data.*
 /dist
+bancai_data
+data

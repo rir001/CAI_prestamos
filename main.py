@@ -1,25 +1,29 @@
+
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QPushButton, QLineEdit
 from PyQt6.QtGui import QFont, QIcon
 from PyQt6.QtCore import Qt
 import requests
 import datetime
 import sys
-from env import DATABASE_ID, HEADERS, USERNAME
+from env import VERSION, DATABASE_ID, HEADERS, USERNAME
 from utils import get_debt, debt_format, get_pendient, pay_format
 from params import WINDOW_POSITION, WINDOW_SIZE, BUTTON_POSITION, BUTTON_SIZE
 from datetime import datetime, datetime, timezone
 fromisoformat = datetime.fromisoformat
 now_time = lambda : datetime.now(timezone.utc)
 from src.input import CodeInput, NaInput
+from github_utils import check_last_version
 
-VESION = "0.1.1"
+
+
+
 
 class Ventana(QMainWindow):
 
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon('logo/Logo_CAi.png'))
-        self.setWindowTitle(f'Prestamos - BanCAi - V{VESION}')
+        self.setWindowTitle(f'Prestamos - BanCAi - {VERSION}')
         self.setGeometry(*WINDOW_POSITION, *WINDOW_SIZE)
         self.load_gui()
         self.show()
@@ -30,9 +34,46 @@ class Ventana(QMainWindow):
         self.load_payment_view()
         self.load_headder()
 
-        self.main_view.show()
+        if not HEADERS():
+            self.load_token_form()
+            self.token_form.show()
+        else:
+            self.main_view.show()
         # self.payment_view.show()
         # self.info_view.show()
+
+
+    def load_token_form(self):
+        self.token_form = QWidget(self)
+        self.token_form.setGeometry(0, 0, *WINDOW_SIZE)
+        self.token_form.setFont(QFont('Arial', 12))
+        # self.token_form.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop)
+        # self.token_form.move(0, 0)
+        # self.token_form.resize(*WINDOW_SIZE)
+
+        self.label_token_form = QLabel("No se ha encontrado el token de Notion", self.token_form)
+        self.label_token_form.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop)
+        self.label_token_form.move(0, 50)
+        self.label_token_form.resize(WINDOW_SIZE[0], 40)
+
+        self.token_input = QLineEdit(self.token_form)
+        self.token_input.move(20, 90)
+        self.token_input.resize(WINDOW_SIZE[0]-40, 40)
+        self.token_input.setFont(QFont('Arial', 12))
+        self.token_input.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop)
+        self.token_input.setPlaceholderText("Token de Notion")
+
+        self.button_token_form = QPushButton("Guardar", self.token_form)
+        self.button_token_form.move(20, 130)
+        self.button_token_form.resize(WINDOW_SIZE[0]-40, 40)
+        self.button_token_form.setFont(QFont('Arial', 12))
+        self.button_token_form.clicked.connect(self.save_token)
+
+    def save_token(self):
+        # TODO: Evaluate if the token is valid
+        HEADERS(self.token_input.text())
+        self.token_form.hide()
+        self.main_view.show()
 
     def load_headder(self):
         self.headder = QWidget(self)
@@ -206,7 +247,7 @@ class Ventana(QMainWindow):
             }
         }
 
-        response = requests.post(url, headers=HEADERS, json=data_)
+        response = requests.post(url, headers=HEADERS(), json=data_)
 
         if response.status_code != 200:
             self.button_send.setEnabled(False)
@@ -225,7 +266,7 @@ class Ventana(QMainWindow):
             "Comentarios": {"rich_text": [{"text": {"content": f"Prestado por {USERNAME()} - {COMMENT}"}}]},
 
         }}
-        response = requests.patch(url, headers=HEADERS, json=data_)
+        response = requests.patch(url, headers=HEADERS(), json=data_)
 
         if response.status_code != 200:
             self.button_send.setEnabled(False)

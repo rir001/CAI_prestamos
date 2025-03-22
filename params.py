@@ -1,6 +1,7 @@
-MAX_PRICE = 5000
+MAX_PRICE = 6000
 DAY_PRICE = 500
 
+#TODO: make screen proportional
 WINDOW_SIZE = (370, 300)
 WINDOW_POSITION = (160, 160)
 

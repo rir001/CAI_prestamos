@@ -36,7 +36,7 @@ def get_debt(person, now=now_time()):
         }
     }
 
-    response = requests.post(url, headers=HEADERS, json=filter_params)
+    response = requests.post(url, headers=HEADERS(), json=filter_params)
 
     if response.status_code != 200:
         return response.status_code
@@ -80,7 +80,7 @@ def get_pendient(object, now=now_time()):
         }
     }
 
-    response = requests.post(url, headers=HEADERS, json=filter_params)
+    response = requests.post(url, headers=HEADERS(), json=filter_params)
 
     if response.status_code != 200:
         return response.status_code
