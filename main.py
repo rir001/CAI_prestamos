@@ -5,16 +5,15 @@ from PyQt6.QtCore import Qt
 import requests
 import datetime
 import sys
+import threading
 from env import VERSION, DATABASE_ID, HEADERS, USERNAME
-from utils import get_debt, debt_format, get_pendient, pay_format
+from utils import get_debt, debt_format, get_pendient, pay_format, test_token
 from params import WINDOW_POSITION, WINDOW_SIZE, BUTTON_POSITION, BUTTON_SIZE
 from datetime import datetime, datetime, timezone
 fromisoformat = datetime.fromisoformat
 now_time = lambda : datetime.now(timezone.utc)
 from src.input import CodeInput, NaInput
 from github_utils import check_last_version
-
-
 
 
 
@@ -67,13 +66,16 @@ class Ventana(QMainWindow):
         self.button_token_form.move(20, 130)
         self.button_token_form.resize(WINDOW_SIZE[0]-40, 40)
         self.button_token_form.setFont(QFont('Arial', 12))
-        self.button_token_form.clicked.connect(self.save_token)
+        self.button_token_form.clicked.connect(self.test_token)
 
-    def save_token(self):
-        # TODO: Evaluate if the token is valid
-        HEADERS(self.token_input.text())
-        self.token_form.hide()
-        self.main_view.show()
+    def test_token(self):
+        if test_token(self.token_input.text()):
+            HEADERS(self.token_input.text())
+            self.token_form.hide()
+            self.main_view.show()
+        else:
+            self.token_input.setText("")
+            self.token_input.setPlaceholderText("Token inválido")
 
     def load_headder(self):
         self.headder = QWidget(self)
@@ -91,12 +93,43 @@ class Ventana(QMainWindow):
         self.button_change_name_headder.setFont(QFont('Arial', 16))
         self.button_change_name_headder.clicked.connect(self.load_name_view)
 
+        new_version = check_last_version()
+        if new_version:
+            self.download_button = QPushButton('⏬ ' + new_version, self.headder)
+            self.download_button.move(200, 0)
+            self.download_button.resize(70, 40)
+            self.download_button.setFont(QFont('Arial', 12))
+            self.download_button.clicked.connect(self.update)
+
         self.name_input = QLineEdit(self.headder)
         self.name_input.move(20, 0)
         self.name_input.resize(WINDOW_SIZE[0]-40, 40)
         self.name_input.setFont(QFont('Arial', 16))
         self.name_input.hide()
         self.name_input.returnPressed.connect(self.show_name)
+
+    def update(self):
+        self.download_button.setText("Descargando...")
+        self.download_button.setEnabled(False)
+        self.update_thread = threading.Thread(target=self.update_thread)
+        self.update_thread.start()
+
+    def update_thread(self):
+        response_github = requests.get("https://api.github.com/repos/rir001/CAI_prestamos/releases/latest")
+        if response_github.status_code == 200:
+            #TODO: OS sensitive
+            link = response_github.json()["assets"][0]["browser_download_url"]
+            file_name = f"Prestamos_CAI_{response_github.json()["tag_name"]}"
+
+            response_download = requests.get(link, stream=True)
+            with open(file_name, "wb") as f:
+                total = int(response_download.headers.get('content-length'))
+                for chunk in response_download.iter_content(chunk_size=int(total/1000)):
+                    f.write(chunk)
+                    self.download_button.setText(f"{int(f.tell()/total*100)}%")
+            self.download_button.setText("Descargado")
+        else:
+            self.download_button.setText("Error")
 
     def load_name_view(self):
         self.label_headder.hide()

@@ -1,11 +1,20 @@
 from params import DAY_PRICE, MAX_PRICE
-from env import DATABASE_ID, HEADERS
+from env import DATABASE_ID, HEADERS, VERSION
 import requests
 from datetime import datetime, timedelta, datetime, timezone
 fromisoformat = datetime.fromisoformat
 now_time = lambda : datetime.now(timezone.utc)
 
 
+
+def test_token(token:str):
+    url = "https://api.notion.com/v1/users"
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Notion-Version': '2022-06-28'
+    }
+    response = requests.get(url, headers=headers)
+    return response.status_code == 200
 
 def calculate_fee(start, end, type=""):
     diff = end - start
