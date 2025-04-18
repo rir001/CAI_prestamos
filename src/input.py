@@ -60,7 +60,7 @@ class CodeInput(InputText):
 class NaInput(InputText):
 
     def __init__(self, window, x, y):
-        super().__init__(window, 'NA:', x, y)
+        super().__init__(window, 'RUT:', x, y)
 
         self.box.returnPressed.connect(self.parse_na)
 
@@ -74,10 +74,13 @@ class NaInput(InputText):
         if len(na) == 0:
             self.info.clear()
             self.able = False
-        elif len(na) >= 8:
+        elif "-" in na:
+            self.info.setText("RUT must not have '-'")
+            self.able = False
+        elif len(na) >= 9:
             self.info.clear()
             self.able = True
         else:
-            self.info.setText("NA must have least 8 characters")
+            self.info.setText("RUT must have least 8 characters")
             self.able = False
 

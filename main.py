@@ -7,7 +7,7 @@ import datetime
 import sys
 import threading
 from env import VERSION, DATABASE_ID, HEADERS, USERNAME
-from utils import get_debt, debt_format, get_pendient, pay_format, test_token
+from utils import get_debt, debt_format, get_pendient, pay_format, test_token, generate_code, get_id
 from params import WINDOW_POSITION, WINDOW_SIZE, BUTTON_POSITION, BUTTON_SIZE
 from datetime import datetime, datetime, timezone
 fromisoformat = datetime.fromisoformat
@@ -263,12 +263,17 @@ class Ventana(QMainWindow):
     def publish_new_debt(self, ID, PERSON, NOW, COMMENT=""):
         url = "https://api.notion.com/v1/pages"
 
+        ID = get_id(ID)
+        if type(ID) == int:
+            self.button_send.setEnabled(False)
+            self.button_send.setText("ERROR ID " + str(ID))
+
         data_ = {
             "parent": {
                 "database_id": DATABASE_ID
             },
             "properties": {
-                "Codigo"    : {"title": [{"text": {"content": ID }}]},
+                "Codigo"    : {"title": [{"text": {"content": generate_code(PERSON) }}]},
                 "Persona"   : {"rich_text": [{"text": {"content": PERSON }}]},
                 "Prestamo"  : {'date': {
                     'start': NOW.isoformat(),
@@ -276,7 +281,15 @@ class Ventana(QMainWindow):
                     'time_zone': None
                     }
                 },
+                #TODO: Add comment box
                 "Comentarios": {"rich_text": [{"text": {"content": f"Prestado por {USERNAME()} - {COMMENT}"}}]},
+                "Inventario": {
+                    "relation": [
+                        {
+                            "id": ID,
+                        }
+                    ]
+                }
             }
         }
 
@@ -284,7 +297,7 @@ class Ventana(QMainWindow):
 
         if response.status_code != 200:
             self.button_send.setEnabled(False)
-            self.button_send.setText("ERROR PUBLICANDO " + str(response.status_code))
+            self.button_send.setText("ERROR PUB " + str(response.status_code))
         else:
             self.button_send.setEnabled(False)
             self.na.box.clear()
